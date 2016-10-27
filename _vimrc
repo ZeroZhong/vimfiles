@@ -89,3 +89,120 @@ set autoindent  "自动缩进
 set cindent     "
 set expandtab   "空格替换tab键
 "autocmd FileType c,cpp,java set shiftwidth=4 | set expandtab
+
+"=====================函数区域
+"映射全选+复制 ctrl+a
+map <C-A> ggVGY
+map! <C-A> <Esc>ggVGY
+"选中状态下 Ctrl+c 复制
+vmap <C-c> "+y    
+
+"自动补全
+:inoremap ( ()<ESC>i
+:inoremap ) <c-r>=ClosePair(')')<CR>
+:inoremap { {<CR>}<ESC>O
+:inoremap } <c-r>=ClosePair('}')<CR>
+:inoremap [ []<ESC>i
+:inoremap ] <c-r>=ClosePair(']')<CR>
+:inoremap " ""<ESC>i
+:inoremap ' ''<ESC>i
+function! ClosePair(char)
+    if getline('.')[col('.') - 1] == a:char
+        return "\<Right>"
+    else
+        return a:char
+    endif
+endfunction
+
+"新建.c,.h,.sh,.java文件，<F4>插入文件头
+map <F4> :call TitleDet()<cr>
+function AddTitle()
+    call append( 0, "/**")
+    call append( 1, " * COPYRIGHT NOTICE")
+    call append( 2, " * Copyright (c) 2015 All rights reserved")
+    call append( 3, " * ")
+    call append( 4, " * @Author       :zhong")
+    call append( 5, " * @File         :".expand("%:p:h")."\\".expand("%:t"))
+    call append( 6, " * @Date         :".strftime("%Y/%m/%d %H:%M"))
+    call append( 7, " * @Description  :")
+    call append( 8, " **/")
+    echohl WarningMsg | echo "Successful in adding the copyright." | echohl None
+endfunction
+"更新最近修改时间和文件名
+function UpdateTitle()
+    normal m'
+    execute '/ * @Date      /s@:.*$@\=strftime(":%Y-%m-%d %H:%M")@'
+    normal ''
+    normal mk
+    execute '/ * @File      /s@:.*$@\=":".expand("%:p:h")."\\".expand("%:t")@'
+    execute "noh"
+    normal 'k
+    echohl WarningMsg | echo "Successful in updating the copyright." | echohl None
+endfunction
+"判断前2行代码里面，是否有COPYRIGHT NOTICE这个单词，
+"如果没有的话，代表没有添加过作者信息，需要新添加；
+"如果有的话，那么只需要更新即可
+function TitleDet()
+    let n = 2
+    "默认为添加
+    let line = getline(n)
+    let str = ' * COPYRIGHT NOTICE'
+    if line == str
+        call UpdateTitle()
+        return
+    endif
+    call AddTitle()
+endfunction
+
+"C，C++ 按<F5>编译运行
+map <F5> :call CompileRunGcc()<CR>
+func! CompileRunGcc()
+    exec "w"
+    if &filetype == 'c'
+	exec "!g++ % -o %<"
+	exec "! ./%<"
+    elseif &filetype == 'cpp'
+	exec "!g++ % -o %<"
+	exec "! ./%<"
+    elseif &filetype == 'java' 
+	exec "!javac %" 
+	exec "!java %<"
+    elseif &filetype == 'sh'
+	:!./%
+    endif
+endfunc
+
+"C,C++ 按<F8>调试
+map <F8> :call Rungdb()<CR>
+func! Rungdb()
+    exec "w"
+    exec "!g++ % -g -o %<"
+    exec "!gdb ./%<"
+endfunc
+
+"按<F6>代码格式优化化
+"使用了astyle
+map <F6> :call FormartSrc()<CR><CR>
+"定义FormartSrc()
+func FormartSrc()
+    exec "w"
+    if &filetype == 'c'
+        exec "!astyle --style=ansi -a --suffix=none %"
+    elseif &filetype == 'cpp' || &filetype == 'hpp'
+	exec "r !astyle --style=ansi --one-line=keep-statements -a --suffix=none %> /dev/null 2>&1"
+    elseif &filetype == 'perl'
+	exec "!astyle --style=gnu --suffix=none %"
+    elseif &filetype == 'py'||&filetype == 'python'
+	exec "r !autopep8 -i --aggressive %"
+    elseif &filetype == 'java'
+	exec "!astyle --style=java --suffix=none %"
+    elseif &filetype == 'jsp'
+	exec "!astyle --style=gnu --suffix=none %"
+    elseif &filetype == 'xml'
+	exec "!astyle --style=gnu --suffix=none %"
+    else
+	exec "normal gg=G"
+	return
+    endif
+    exec "e! %"
+endfunc
