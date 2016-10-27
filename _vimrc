@@ -89,3 +89,36 @@ set autoindent  "自动缩进
 set cindent     "
 set expandtab   "空格替换tab键
 "autocmd FileType c,cpp,java set shiftwidth=4 | set expandtab
+
+"=====================插件区域
+filetype off                  " required
+
+set rtp+=$VIM/vimfiles/bundle/vundle/  
+call vundle#rc('$VIM/vimfiles/bundle/')  
+Bundle 'gmarik/vundle'  
+Bundle 'tpope/vim-pathogen'
+Bundle 'mhinz/vim-startify'
+Bundle 'scrooloose/nerdtree'
+Bundle 'majutsushi/tagbar'
+Bundle 'bling/vim-airline'
+Bundle 'fholgado/minibufexpl.vim'
+
+execute pathogen#infect()
+
+let NERDTreeWinPos='left'
+let NERDTreeWinSize=30
+map <F2> :NERDTreeToggle<CR>
+
+"nmap <Leader>tb :TagbarToggle<CR>        "快捷键设置
+let g:tagbar_ctags_bin='ctags'            "ctags程序的路径
+let g:tagbar_width=30                    "窗口宽度的设置
+map <F3> :Tagbar<CR>
+
+"let g:miniBufExplMapWindowNavVim = 1   
+"let g:miniBufExplMapWindowNavArrows = 1   
+"let g:miniBufExplMapCTabSwitchBufs = 1   
+"let g:miniBufExplModSelTarget = 1  
+"let g:miniBufExplMoreThanOne=0
+
+"map <F11> :MBEbp<CR>
+"map <F12> :MBEbn<CR>
